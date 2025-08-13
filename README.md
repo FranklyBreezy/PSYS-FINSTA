@@ -43,7 +43,7 @@ A lightweight, offline-first personal finance tracker built with **Java** and **
 ## 📦 Project Structure
 
 ```text
-com.yourdomain.financetracker
+com.example.psysfinsta
 │
 ├── data              # Room Entities, DAO, Database
 ├── repository        # Abstraction over data sources
