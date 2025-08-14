@@ -5,30 +5,43 @@ import android.content.Context;
 import androidx.room.Database;
 import androidx.room.Room;
 import androidx.room.RoomDatabase;
+import androidx.room.TypeConverters;
 
-import com.example.psysfinsta.data.dao.ExpenseDao;
-import com.example.psysfinsta.data.dao.IncomeDao;
-import com.example.psysfinsta.data.entity.Expense;
-import com.example.psysfinsta.data.entity.Income;
+import com.example.psysfinsta.data.dao.TagDao;
+import com.example.psysfinsta.data.dao.TransactionDao;
+import com.example.psysfinsta.data.entity.Tag;
+import com.example.psysfinsta.data.entity.TransactionEntity;
+import com.example.psysfinsta.data.entity.TransactionTagCrossRef;
+import com.example.psysfinsta.data.util.Converter;
 
 @Database(
-        entities = {Expense.class , Income.class},
+        entities = {
+                TransactionEntity.class,
+                Tag.class,
+                TransactionTagCrossRef.class
+        },
         version = 1,
         exportSchema = false
 )
+@TypeConverters({Converter.class})
 public abstract class AppDatabase extends RoomDatabase {
-    public abstract ExpenseDao expenseDao();
-    public abstract IncomeDao incomeDao();
-    private static volatile  AppDatabase INSTANCE;
 
-    public static AppDatabase getInstance(Context context){
-        if(INSTANCE == null){
+    public abstract TransactionDao transactionDao();
+    public abstract TagDao tagDao();  // You forgot this. Mandatory.
+
+    private static volatile AppDatabase INSTANCE;
+
+    public static AppDatabase getInstance(Context context) {
+        if (INSTANCE == null) {
             synchronized (AppDatabase.class) {
                 if (INSTANCE == null) {
                     INSTANCE = Room.databaseBuilder(
-                            context.getApplicationContext(),
-                            AppDatabase.class,
-                            "psysfinsta_database").build();
+                                    context.getApplicationContext(),
+                                    AppDatabase.class,
+                                    "psysfinsta_database"
+                            )
+                            .fallbackToDestructiveMigration()  // use with caution
+                            .build();
                 }
             }
         }
