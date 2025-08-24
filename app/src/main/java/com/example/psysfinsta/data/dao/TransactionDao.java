@@ -28,8 +28,15 @@ public interface TransactionDao {
     @Delete
     void delete(TransactionEntity transaction);
 
+    @Query("DELETE FROM transactions WHERE recurrence != 'NONE' AND date >= :fromDate")
+    void deleteFutureTransactions(long fromDate);
+
+    @Query("DELETE FROM transaction_tag_cross_ref WHERE transactionId = :transactionId")
+    void deleteTransactionTagCrossRefs(int transactionId);
+
+
     @Insert(onConflict = OnConflictStrategy.IGNORE)
-    void insertTag(Tag tag);
+    long insertTag(Tag tag); // ✅ changed to return ID for use in repository logic
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     void insertTransactionTagCrossRef(TransactionTagCrossRef crossRef);
@@ -42,13 +49,20 @@ public interface TransactionDao {
     @Query("SELECT * FROM transactions WHERE id = :id")
     LiveData<TransactionWithTags> getTransactionWithTagsById(int id);
 
+    @Query("SELECT * FROM transactions WHERE id = :id")
+    TransactionEntity getTransactionByIdSync(int id);
+
     @Transaction
     @Query("SELECT * FROM transactions WHERE type = :type ORDER BY date DESC")
     LiveData<List<TransactionWithTags>> getTransactionsByType(String type);
 
     @Transaction
     @Query("SELECT * FROM transactions WHERE recurrence != 'NONE' ORDER BY date ASC")
-    LiveData<List<TransactionWithTags>> getRecurringTransactions();
+    LiveData<List<TransactionWithTags>> getRecurringTransactions(); // ✅ Keep this for UI observation
+
+    // ✅ Added: Sync version for Worker use
+    @Query("SELECT * FROM transactions WHERE recurrence != 'NONE' ORDER BY date ASC")
+    List<TransactionEntity> getRecurringTransactionsSync();
 
     @Transaction
     @Query("SELECT * FROM transactions " +
@@ -71,4 +85,8 @@ public interface TransactionDao {
             long endDate,
             List<String> tagNames
     );
+
+    // ✅ Added: Used by repository for checking if a recurrence exists in current period
+    @Query("SELECT COUNT(*) FROM transactions WHERE recurrence != 'NONE' AND recurringGroupId = :recurringGroupId AND date BETWEEN :startDate AND :endDate")
+    int countOccurrencesInPeriod(int recurringGroupId, long startDate, long endDate);
 }

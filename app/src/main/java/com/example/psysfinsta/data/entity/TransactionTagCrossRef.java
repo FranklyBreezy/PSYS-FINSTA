@@ -3,6 +3,8 @@ package com.example.psysfinsta.data.entity;
 import androidx.room.Entity;
 import androidx.room.ForeignKey;
 
+import androidx.room.Index;
+
 @Entity(
         tableName = "transaction_tag_cross_ref",
         primaryKeys = {"transactionId", "tagId"},
@@ -15,6 +17,9 @@ import androidx.room.ForeignKey;
                         parentColumns = "tagId",
                         childColumns = "tagId",
                         onDelete = ForeignKey.CASCADE)
+        },
+        indices = {
+                @Index("tagId") // Add this to match what's created in the DB
         }
 )
 public class TransactionTagCrossRef {

@@ -19,20 +19,24 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.psysfinsta.R;
 import com.example.psysfinsta.data.entity.RecurrenceType;
+import com.example.psysfinsta.data.entity.Tag;
 import com.example.psysfinsta.data.entity.TransactionEntity;
 import com.example.psysfinsta.data.entity.TransactionType;
+import com.example.psysfinsta.data.entity.TransactionWithTags;
 import com.example.psysfinsta.ui.viewmodel.TransactionViewModel;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 public class TransactionFormFragment extends Fragment {
 
     private TransactionViewModel transactionViewModel;
-    private EditText editAmount, editCategory, editDescription;
+    private EditText editAmount, editCategory, editDescription, editTags;
     private Spinner spinnerTransactionType, spinnerRecurrenceType;
     private Button btnSave;
 
-    // Holds transaction if editing
     private TransactionEntity currentTransaction;
 
     @Nullable
@@ -51,11 +55,11 @@ public class TransactionFormFragment extends Fragment {
         editAmount = view.findViewById(R.id.edit_amount);
         editCategory = view.findViewById(R.id.edit_category);
         editDescription = view.findViewById(R.id.edit_description);
+        editTags = view.findViewById(R.id.edit_tags);
         spinnerTransactionType = view.findViewById(R.id.spinner_transaction_type);
         spinnerRecurrenceType = view.findViewById(R.id.spinner_recurrence_type);
         btnSave = view.findViewById(R.id.btn_save);
 
-        // Setup adapters for enum spinners
         spinnerTransactionType.setAdapter(new ArrayAdapter<>(
                 requireContext(),
                 android.R.layout.simple_spinner_dropdown_item,
@@ -66,36 +70,48 @@ public class TransactionFormFragment extends Fragment {
                 android.R.layout.simple_spinner_dropdown_item,
                 RecurrenceType.values()));
 
-        // Check if we have args to edit an existing transaction
-        if (getArguments() != null && getArguments().containsKey("transaction")) {
-            currentTransaction = (TransactionEntity) getArguments().getSerializable("transaction");
-            if (currentTransaction != null) {
-                prefillData(currentTransaction);
+        if (getArguments() != null && getArguments().containsKey("transactionWithTags")) {
+            TransactionWithTags transactionWithTags = getArguments().getParcelable("transactionWithTags");
+            if (transactionWithTags != null) {
+                prefillData(transactionWithTags);
+                currentTransaction = transactionWithTags.getTransactionEntity();
             }
         }
 
         btnSave.setOnClickListener(v -> saveTransaction());
     }
 
-    private void prefillData(TransactionEntity transaction) {
+    private void prefillData(TransactionWithTags transactionWithTags) {
+        TransactionEntity transaction = transactionWithTags.getTransactionEntity();
         editAmount.setText(String.valueOf(transaction.getAmount()));
         editCategory.setText(transaction.getCategory());
         editDescription.setText(transaction.getDescription());
         spinnerTransactionType.setSelection(transaction.getType().ordinal());
         spinnerRecurrenceType.setSelection(transaction.getRecurrence().ordinal());
+
+        List<Tag> tags = transactionWithTags.getTags();
+        if (tags != null && !tags.isEmpty()) {
+            List<String> tagNames = new ArrayList<>();
+            for (Tag tag : tags) {
+                tagNames.add(tag.getName());
+            }
+            String tagsString = TextUtils.join(", ", tagNames);
+            editTags.setText(tagsString);
+        }
     }
 
     private void saveTransaction() {
         String amountStr = editAmount.getText().toString().trim();
         String category = editCategory.getText().toString().trim();
         String description = editDescription.getText().toString().trim();
+        String tagsInput = editTags.getText().toString().trim();
 
-        // Input validation with error messages
         if (TextUtils.isEmpty(amountStr)) {
             editAmount.setError("Amount is required");
             editAmount.requestFocus();
             return;
         }
+
         double amount;
         try {
             amount = Double.parseDouble(amountStr);
@@ -120,17 +136,25 @@ public class TransactionFormFragment extends Fragment {
         TransactionType type = (TransactionType) spinnerTransactionType.getSelectedItem();
         RecurrenceType recurrence = (RecurrenceType) spinnerRecurrenceType.getSelectedItem();
 
+        List<String> tagList = tagsInput.isEmpty()
+                ? Collections.emptyList()
+                : Arrays.asList(tagsInput.split("\\s*,\\s*"));
+
         TransactionEntity transaction;
         if (currentTransaction != null) {
-            // Updating existing transaction, preserve ID
             transaction = new TransactionEntity(amount, category, date, description, type, recurrence);
             transaction.setId(currentTransaction.getId());
+
+            // Preserve recurrence fields
+            transaction.setRecurringGroupId(currentTransaction.getRecurringGroupId());
+            transaction.setFrequency(currentTransaction.getFrequency());
+            transaction.setIsRecurring(currentTransaction.isRecurring());
+
             transactionViewModel.updateTransaction(transaction);
             Toast.makeText(getContext(), "Transaction updated", Toast.LENGTH_SHORT).show();
         } else {
-            // Creating new transaction
             transaction = new TransactionEntity(amount, category, date, description, type, recurrence);
-            transactionViewModel.insertTransaction(transaction, Collections.emptyList());
+            transactionViewModel.insertTransaction(transaction, tagList);
             Toast.makeText(getContext(), "Transaction saved", Toast.LENGTH_SHORT).show();
         }
 

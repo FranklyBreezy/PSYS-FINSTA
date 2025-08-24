@@ -1,8 +1,17 @@
 <resources>
-    <string name="app_name">PSYS FINSTA</string>
+    <string name="app_name">Psysfinsta</string>
     <string name="add_transaction">Add Transaction</string>
     <string name="hint_amount">Amount</string>
     <string name="hint_category">Category</string>
     <string name="hint_description">Description</string>
     <string name="btn_save">Save</string>
+
+    <string name="weekly_balance">Weekly Net Balance:</string>
+    <string name="monthly_balance">Current Month Net Balance:</string>
+    <string name="yearly_balance">Current Year Net Balance:</string>
+    <string name="tags_hint">Tags (comma-separated)</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="rows">Rows</string>
+
 </resources>

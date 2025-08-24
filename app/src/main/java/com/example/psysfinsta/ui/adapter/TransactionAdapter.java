@@ -9,7 +9,9 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.psysfinsta.R;
+import com.example.psysfinsta.data.entity.Tag;
 import com.example.psysfinsta.data.entity.TransactionEntity;
+import com.example.psysfinsta.data.entity.TransactionWithTags;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -17,24 +19,26 @@ import java.util.Locale;
 
 public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.TransactionViewHolder> {
 
-    private List<TransactionEntity> transactions;
+    private List<TransactionWithTags> transactions;
     private OnItemClickListener onItemClickListener;
 
-    public void setTransactions(List<TransactionEntity> transactions) {
+    // ✅ Set new list of TransactionWithTags
+    public void setTransactionWithTagsList(List<TransactionWithTags> transactions) {
         this.transactions = transactions;
         notifyDataSetChanged();
     }
 
+    // ✅ Retrieve TransactionEntity at position (for swipe-to-delete, etc.)
     public TransactionEntity getTransactionAtPosition(int position) {
         if (transactions != null && position >= 0 && position < transactions.size()) {
-            return transactions.get(position);
+            return transactions.get(position).transactionEntity;
         }
         return null;
     }
 
-    // Interface for click events
+    // ✅ Interface updated to pass full TransactionWithTags
     public interface OnItemClickListener {
-        void onItemClick(TransactionEntity transaction);
+        void onItemClick(TransactionWithTags transactionWithTags);
     }
 
     public void setOnItemClickListener(OnItemClickListener listener) {
@@ -51,7 +55,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull TransactionViewHolder holder, int position) {
-        TransactionEntity tx = transactions.get(position);
+        TransactionWithTags twt = transactions.get(position);
+        TransactionEntity tx = twt.transactionEntity;
 
         holder.amount.setText("₹" + tx.getAmount());
         holder.category.setText(tx.getCategory());
@@ -60,9 +65,19 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMM yyyy", Locale.getDefault());
         holder.date.setText(sdf.format(tx.getDate()));
 
+        // Optional: Show tags if you have a tags TextView
+        if (!twt.tags.isEmpty()) {
+            StringBuilder tagsText = new StringBuilder();
+            for (Tag tag : twt.tags) {
+                tagsText.append("#").append(tag.getName()).append(" ");
+            }
+            // If you add a TextView for tags, you can use:
+            // holder.tags.setText(tagsText.toString().trim());
+        }
+
         holder.itemView.setOnClickListener(v -> {
             if (onItemClickListener != null) {
-                onItemClickListener.onItemClick(tx);
+                onItemClickListener.onItemClick(twt);
             }
         });
     }
@@ -81,6 +96,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             category = itemView.findViewById(R.id.text_category);
             description = itemView.findViewById(R.id.text_description);
             date = itemView.findViewById(R.id.text_date);
+            // Optional: Add if you want to display tags
+            // tags = itemView.findViewById(R.id.text_tags);
         }
     }
 }

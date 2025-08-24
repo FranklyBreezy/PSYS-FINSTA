@@ -7,8 +7,10 @@ import androidx.room.Room;
 import androidx.room.RoomDatabase;
 import androidx.room.TypeConverters;
 
+import com.example.psysfinsta.data.dao.BudgetDao;
 import com.example.psysfinsta.data.dao.TagDao;
 import com.example.psysfinsta.data.dao.TransactionDao;
+import com.example.psysfinsta.data.entity.Budget;
 import com.example.psysfinsta.data.entity.Tag;
 import com.example.psysfinsta.data.entity.TransactionEntity;
 import com.example.psysfinsta.data.entity.TransactionTagCrossRef;
@@ -18,16 +20,18 @@ import com.example.psysfinsta.data.util.Converter;
         entities = {
                 TransactionEntity.class,
                 Tag.class,
-                TransactionTagCrossRef.class
+                TransactionTagCrossRef.class,
+                Budget.class
         },
-        version = 1,
-        exportSchema = false
+        version = 4,
+        exportSchema = true
 )
 @TypeConverters({Converter.class})
 public abstract class AppDatabase extends RoomDatabase {
 
     public abstract TransactionDao transactionDao();
-    public abstract TagDao tagDao();  // You forgot this. Mandatory.
+    public abstract TagDao tagDao();
+    public abstract BudgetDao budgetDao();
 
     private static volatile AppDatabase INSTANCE;
 
@@ -40,7 +44,12 @@ public abstract class AppDatabase extends RoomDatabase {
                                     AppDatabase.class,
                                     "psysfinsta_database"
                             )
-                            .fallbackToDestructiveMigration()  // use with caution
+                            .addMigrations(
+                                    Migrations.MIGRATION_1_2,
+                                    Migrations.MIGRATION_2_3,
+                                    Migrations.MIGRATION_3_4
+                            )
+                            .fallbackToDestructiveMigrationOnDowngrade()
                             .build();
                 }
             }

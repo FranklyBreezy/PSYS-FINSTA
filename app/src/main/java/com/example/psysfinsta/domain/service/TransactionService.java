@@ -32,9 +32,10 @@ public class TransactionService {
         transactionRepository.delete(transactionEntity);
     }
 
-    public void updateTransaction(TransactionEntity transactionEntity) {
-        transactionRepository.update(transactionEntity);
+    public void updateTransaction(TransactionEntity transactionEntity, List<String> tagNames) {
+        transactionRepository.update(transactionEntity, tagNames);
     }
+
 
     public LiveData<List<TransactionWithTags>> getTransactionsByType(TransactionType type) {
         return transactionRepository.getByType(type);

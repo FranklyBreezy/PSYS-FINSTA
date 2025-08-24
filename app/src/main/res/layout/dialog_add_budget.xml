@@ -1,0 +1,21 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <EditText
+        android:id="@+id/edtCategory"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Tag Name"
+        android:inputType="text" />
+
+    <EditText
+        android:id="@+id/edtLimit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Limit"
+        android:inputType="numberDecimal"
+        android:layout_marginTop="8dp" />
+</LinearLayout>
